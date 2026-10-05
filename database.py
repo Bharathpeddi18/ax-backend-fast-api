@@ -7,12 +7,12 @@ load_dotenv()
 
 def get_connection():
     connection = psycopg.connect(
-        host=os.getenv("AZURE_DB_HOST"),
-        port=os.getenv("AZURE_DB_PORT"),
-        user=os.getenv("AZURE_DB_USER"),
-        password=os.getenv("AZURE_DB_PASSWORD"),
-        dbname=os.getenv("AZURE_DB_NAME"),
-        # sslmode=os.getenv("AZURE_DB_SSLMODE"),
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        dbname=os.getenv("DB_NAME"),
+        sslmode=os.getenv("DB_SSLMODE") or "disable",
         row_factory=dict_row,
     )
     return connection
