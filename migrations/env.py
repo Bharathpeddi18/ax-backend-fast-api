@@ -17,14 +17,14 @@ target_metadata = None
 def get_database_url():
     return URL.create(
         drivername="postgresql+psycopg",
-        username=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        port=int(os.getenv("DB_PORT", "5432")),
-        database=os.getenv("DB_NAME"),
+        username=os.getenv("AZURE_DB_USER"),
+        password=os.getenv("AZURE_DB_PASSWORD"),
+        host=os.getenv("AZURE_DB_HOST"),
+        port=int(os.getenv("AZURE_DB_PORT", "5432")),
+        database=os.getenv("AZURE_DB_NAME"),
         query={
             "sslmode": os.getenv(
-                "DB_SSLMODE",
+                "AZURE_DB_SSLMODE",
                 "disable",
             )
         },
