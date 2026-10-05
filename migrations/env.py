@@ -20,7 +20,7 @@ def get_database_url():
         username=os.getenv("AZURE_DB_USER"),
         password=os.getenv("AZURE_DB_PASSWORD"),
         host=os.getenv("AZURE_DB_HOST"),
-        port=int(os.getenv("AZURE_DB_PORT", "5432")),
+        port=int(os.getenv("AZURE_DB_PORT", "5432") or "5432"),
         database=os.getenv("AZURE_DB_NAME"),
         query={
             "sslmode": os.getenv(
