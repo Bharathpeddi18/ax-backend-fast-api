@@ -1,0 +1,106 @@
+from dependencies import require_roles
+from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Request, Response, status, Depends
+
+from database import get_connection
+from security import create_access_token, verify_password
+from dependencies import get_current_user
+
+router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+# region api-login
+@router.post('/login')
+def login(
+    data: LoginRequest,
+    response: Response,
+):
+
+    email = data.email.strip().lower()
+
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT 
+                    id,
+                    email,
+                    role,
+                    is_active,
+                    password_hash
+                FROM users
+                WHERE LOWER(email) = %s
+                """,
+                (email,),
+            )
+
+            user = cursor.fetchone()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    if not verify_password(data.password, user["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+    
+    access_token = create_access_token(user["id"])
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=30 * 60,
+        path="/",
+    )
+
+    return {
+        "message": "Login was succesfull",
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "role": user["role"],
+        },
+    }
+
+# region api-logout
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        httponly=True,
+        samesite="lax",
+    )
+    return {"message": "Logout successful"}
+
+# region api-me
+@router.get("/me")
+def me(current_user = Depends(get_current_user)):
+    return {
+        "user": {
+            "id": current_user["id"],
+            "email": current_user["email"],
+            "role": current_user["role"],
+        }
+    }
+
+@router.get("/test-owner")
+def test_owner(
+    current_user=Depends(
+        require_roles("owner")
+    ),
+):
+    return {
+        "message": "onwer access granted",
+        "user": current_user,
+    }
