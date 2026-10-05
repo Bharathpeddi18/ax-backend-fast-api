@@ -17,6 +17,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 # Argon2 password hashing
 password_hash = PasswordHash.recommended()
 
+# region hash_password
+def hash_password(password: str) -> str:
+    return password_hash.hash(password)
+
 # region verify_password 
 def verify_password(plain_password: str, hashed_password: str, ) -> bool:
     return password_hash.verify(

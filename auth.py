@@ -1,3 +1,4 @@
+import os
 from dependencies import require_roles
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Request, Response, status, Depends
@@ -7,6 +8,13 @@ from security import create_access_token, verify_password
 from dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+ENVIRONMENT = os.getenv(
+    "ENVIRONMENT",
+    "development",
+)
+
+IS_PRODUCTION = ENVIRONMENT == "production"
 
 class LoginRequest(BaseModel):
     email: str
@@ -57,8 +65,8 @@ def login(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=IS_PRODUCTION,
+        samesite="none" if IS_PRODUCTION else "lax",
         max_age=30 * 60,
         path="/",
     )
@@ -79,7 +87,8 @@ def logout(response: Response):
         key="access_token",
         path="/",
         httponly=True,
-        samesite="lax",
+        secure=IS_PRODUCTION,
+        samesite="none" if IS_PRODUCTION else "lax",
     )
     return {"message": "Logout successful"}
 
