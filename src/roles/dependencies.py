@@ -1,7 +1,7 @@
 from fastapi import Cookie, Depends, HTTPException, status
 
-from database import get_connection
-from security import decode_access_token
+from src.database.database import get_connection
+from src.user.security import decode_access_token
 
 
 def get_current_user(
@@ -36,7 +36,7 @@ def get_current_user(
                 SELECT
                     id,
                     email,
-                    role,
+                    group_code,
                     is_active
                 FROM users
                 WHERE id = %s
@@ -66,7 +66,7 @@ def require_roles(*allowed_roles: str):
     def role_checker(
         current_user=Depends(get_current_user),
     ):
-        if current_user["role"] not in allowed_roles:
+        if current_user["group_code"] not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to perform this action",

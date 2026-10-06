@@ -1,11 +1,12 @@
 import os
-from dependencies import require_roles
+from src.roles.dependencies import require_roles
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Request, Response, status, Depends
 
-from database import get_connection
-from security import create_access_token, verify_password
-from dependencies import get_current_user
+from src.database.database import get_connection
+from src.user.security import create_access_token, verify_password
+from src.roles.dependencies import get_current_user
+from global_config import groups
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -36,7 +37,7 @@ def login(
                 SELECT 
                     id,
                     email,
-                    role,
+                    group_code,
                     is_active,
                     password_hash
                 FROM users
@@ -76,7 +77,7 @@ def login(
         "user": {
             "id": user["id"],
             "email": user["email"],
-            "role": user["role"],
+            "group_code": user["group_code"],
         },
     }
 
@@ -99,7 +100,7 @@ def me(current_user = Depends(get_current_user)):
         "user": {
             "id": current_user["id"],
             "email": current_user["email"],
-            "role": current_user["role"],
+            "group_code": current_user["group_code"],
         }
     }
 
