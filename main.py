@@ -1,9 +1,9 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
 import os
-from src.user.auth import router as auth_router
+from src.routers.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
-from src.user.auth import router as auth_router
+from src.routers.auth import router as auth_router
 
 load_dotenv()
 

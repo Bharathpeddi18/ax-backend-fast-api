@@ -1,11 +1,11 @@
 import os
-from src.user.dependencies import require_roles
+from src.core.dependencies import require_roles
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Request, Response, status, Depends
 
-from src.database.database import get_connection
-from src.user.security import create_access_token, verify_password
-from src.user.dependencies import get_current_user
+from src.core.database import get_connection
+from src.core.security import create_access_token, verify_password
+from src.core.dependencies import get_current_user
 from global_config import groups
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])

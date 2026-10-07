@@ -1,7 +1,7 @@
 from fastapi import Cookie, Depends, HTTPException, status
 
-from src.database.database import get_connection
-from src.user.security import decode_access_token
+from src.core.database import get_connection
+from src.core.security import decode_access_token
 
 
 def get_current_user(

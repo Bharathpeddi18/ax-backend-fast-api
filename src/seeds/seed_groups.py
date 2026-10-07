@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
-from src.database.database import SessionLocal
-from src.database.models.groups import Group
+from src.core.database import SessionLocal
+from src.models.groupss import Group
 
 
 def seed_groups():
