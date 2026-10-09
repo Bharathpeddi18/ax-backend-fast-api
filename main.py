@@ -6,9 +6,6 @@ from src.routers.student import router as student_router
 from fastapi.middleware.cors import CORSMiddleware
 from src.core.database import engine, Base
 
-# Create tables that don't already exist
-Base.metadata.create_all(bind=engine)
-
 load_dotenv()
 
 app = FastAPI()
