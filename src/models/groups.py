@@ -1,7 +1,7 @@
 from sqlalchemy import BigInteger, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.database.database import Base
+from src.core.database import Base
 
 
 class Group(Base):

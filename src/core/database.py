@@ -4,9 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-
 load_dotenv()
-
 
 DATABASE_URL = URL.create(
     drivername="postgresql+psycopg",
@@ -20,9 +18,7 @@ DATABASE_URL = URL.create(
     },
 )
 
-
 engine = create_engine(DATABASE_URL)
-
 
 SessionLocal = sessionmaker(
     bind=engine,
@@ -30,6 +26,12 @@ SessionLocal = sessionmaker(
     autocommit=False,
 )
 
-
 class Base(DeclarativeBase):
     pass
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

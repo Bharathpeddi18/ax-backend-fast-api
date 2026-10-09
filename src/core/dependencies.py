@@ -1,11 +1,14 @@
 from fastapi import Cookie, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-from src.database.database import get_connection
-from src.user.security import decode_access_token
+from src.core.database import get_db
+from src.core.security import decode_access_token
+from src.models.users import User
 
 
 def get_current_user(
     access_token: str | None = Cookie(default=None),
+    db: Session = Depends(get_db),
 ):
     if not access_token:
         raise HTTPException(
@@ -28,24 +31,7 @@ def get_current_user(
             detail="Invalid or expired session",
         )
 
-    with get_connection() as conn:
-        with conn.cursor() as cursor:
-
-            cursor.execute(
-                """
-                SELECT
-                    id,
-                    email,
-                    group_code,
-                    is_active
-                FROM users
-                WHERE id = %s
-                LIMIT 1
-                """,
-                (user_id,),
-            )
-
-            user = cursor.fetchone()
+    user = db.get(User, user_id)
 
     if not user:
         raise HTTPException(
@@ -53,7 +39,7 @@ def get_current_user(
             detail="User not found",
         )
 
-    if not user["is_active"]:
+    if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is inactive",
@@ -64,9 +50,9 @@ def get_current_user(
 def require_roles(*allowed_roles: str):
 
     def role_checker(
-        current_user=Depends(get_current_user),
+        current_user: User = Depends(get_current_user),
     ):
-        if current_user["group_code"] not in allowed_roles:
+        if current_user.group_code not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to perform this action",

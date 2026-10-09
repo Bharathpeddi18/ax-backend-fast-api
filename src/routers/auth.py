@@ -1,20 +1,17 @@
 import os
-from src.user.dependencies import require_roles
 from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException, Request, Response, status, Depends
+from fastapi import APIRouter, HTTPException, Response, status, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 
-from src.database.database import get_connection
-from src.user.security import create_access_token, verify_password
-from src.user.dependencies import get_current_user
-from global_config import groups
+from src.core.database import get_db
+from src.core.security import create_access_token, verify_password
+from src.core.dependencies import get_current_user, require_roles
+from src.models.users import User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-ENVIRONMENT = os.getenv(
-    "ENVIRONMENT",
-    "development",
-)
-
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"
 
 class LoginRequest(BaseModel):
@@ -26,27 +23,11 @@ class LoginRequest(BaseModel):
 def login(
     data: LoginRequest,
     response: Response,
+    db: Session = Depends(get_db),
 ):
-
     email = data.email.strip().lower()
 
-    with get_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT 
-                    id,
-                    email,
-                    group_code,
-                    is_active,
-                    password_hash
-                FROM users
-                WHERE LOWER(email) = %s
-                """,
-                (email,),
-            )
-
-            user = cursor.fetchone()
+    user = db.query(User).filter(func.lower(User.email) == email).first()
     
     if not user:
         raise HTTPException(
@@ -54,13 +35,13 @@ def login(
             detail="Invalid email or password",
         )
 
-    if not verify_password(data.password, user["password_hash"]):
+    if not verify_password(data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
     
-    access_token = create_access_token(user["id"])
+    access_token = create_access_token(user.id)
 
     response.set_cookie(
         key="access_token",
@@ -75,9 +56,9 @@ def login(
     return {
         "message": "Login was succesfull",
         "user": {
-            "id": user["id"],
-            "email": user["email"],
-            "group_code": user["group_code"],
+            "id": user.id,
+            "email": user.email,
+            "group_code": user.group_code,
         },
     }
 
@@ -95,22 +76,24 @@ def logout(response: Response):
 
 # region api-me
 @router.get("/me")
-def me(current_user = Depends(get_current_user)):
+def me(current_user: User = Depends(get_current_user)):
     return {
         "user": {
-            "id": current_user["id"],
-            "email": current_user["email"],
-            "group_code": current_user["group_code"],
+            "id": current_user.id,
+            "email": current_user.email,
+            "group_code": current_user.group_code,
         }
     }
 
 @router.get("/test-owner")
 def test_owner(
-    current_user=Depends(
-        require_roles("owner")
-    ),
+    current_user: User = Depends(require_roles("owner")),
 ):
     return {
-        "message": "onwer access granted",
-        "user": current_user,
+        "message": "owner access granted",
+        "user": {
+            "id": current_user.id,
+            "email": current_user.email,
+            "group_code": current_user.group_code,
+        },
     }

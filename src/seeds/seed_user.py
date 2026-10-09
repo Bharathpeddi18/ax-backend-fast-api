@@ -1,9 +1,9 @@
 from pwdlib import PasswordHash
 from sqlalchemy import select
 
-from src.database.database import SessionLocal
-from src.database.models.users import User
-from src.database.models.groups import Group
+from src.core.database import SessionLocal
+from src.models.userss import User
+from src.models.groupss import Group
 
 
 password_hash = PasswordHash.recommended()
