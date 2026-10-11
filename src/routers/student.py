@@ -79,6 +79,15 @@ async def get_student(student_id: int, db: Session = Depends(get_db)):
         "photo_url": f"/photo/{student.photo_id}" if student.photo_id else None
     }
 
+@router.delete("/students/{student_id}")
+async def delete_student(student_id: int, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    db.delete(student)
+    db.commit()
+    return {"message": "Student deleted successfully"}
+
 @router.get("/photo/{photo_id}")
 async def get_photo(photo_id: str):
     try:
