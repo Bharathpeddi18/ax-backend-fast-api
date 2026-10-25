@@ -1,3 +1,4 @@
+<img width="958" height="481" alt="Screenshot 2026-10-25 152700" src="https://github.com/user-attachments/assets/d1244919-3d3c-4afc-a1f2-71e34c3c5583" />
 # AX Backend API
 
 FastAPI backend for Astrax School, a student management platform that improves communication between parents and schools.
